@@ -1,30 +1,32 @@
 'use strict';
 
-const items = document.querySelectorAll('li');
-
-const employees = Array.from(items).map((el) => ({
-  name: el.textContent.trim(),
-  position: el.dataset.position,
-  salary: Number(el.dataset.salary.replace(/[$,]/g, '')),
-}));
-
-const getEmployees = (list) => {
-  const ul = document.querySelector('ul');
-
-  ul.innerHTML = '';
-
-  list.forEach((element) => {
-    const li = document.createElement('li');
-
-    li.textContent = element.name;
-    li.dataset.position = element.position;
-    li.dataset.salary = `$${element.salary.toLocaleString()}`;
-    ul.appendChild(li);
-  });
-};
+const parseSalary = (s) => Number(String(s || '').replace(/[^\d.-]/g, ''));
 
 const sortList = (list) => {
-  return list.sort((a, b) => b.salary - a.salary);
+  if (!list) {
+    return;
+  }
+
+  const items = Array.from(list.querySelectorAll(':scope > li'));
+
+  items.sort(
+    (a, b) => parseSalary(b.dataset.salary) - parseSalary(a.dataset.salary),
+  );
+  items.forEach((li) => list.appendChild(li));
 };
 
-getEmployees(sortList(employees));
+const getEmployees = (list) => {
+  const items = Array.from(list.querySelectorAll(':scope > li'));
+
+  return items.map((li) => ({
+    name: li.textContent.trim(),
+    position: li.dataset.position || '',
+    salary: parseSalary(li.dataset.salary),
+    age: Number(li.dataset.age),
+  }));
+};
+
+const employeesList = document.querySelector('ul');
+
+sortList(employeesList);
+getEmployees(employeesList);
